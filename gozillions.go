@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	listenAddr := "127.0.0.1:" + parsePort()
+	listenAddr := parseAddr()
 	fmt.Printf("listening on %s\n", listenAddr)
 
 	l, err := net.Listen("tcp", listenAddr)
@@ -33,12 +33,12 @@ func main() {
 	}
 }
 
-func parsePort() string {
-	port := "8000"
+func parseAddr() string {
+	addr := "127.0.0.1:8000"
 	if len(os.Args) > 1 {
-		port = os.Args[1]
+		addr = os.Args[1]
 	}
-	return port
+	return addr
 }
 
 func handle(cm *ConnectionManager, conn net.Conn) {
