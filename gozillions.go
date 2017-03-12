@@ -79,7 +79,7 @@ func (cm *ConnectionManager) loop() {
 			for i, c := range conns {
 				if c == nil {
 					wg.Done()
-					return
+					continue
 				}
 				go func(conn net.Conn) {
 					_, err := conn.Write(msg)
