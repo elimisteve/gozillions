@@ -85,7 +85,10 @@ func (cm *ConnectionManager) loop() {
 					_, err := conn.Write(msg)
 					if err != nil {
 						log.Printf("Error writing to conn: %s\n", err)
-						c.Close()
+
+						// TODO: Consider doing more checks to ensure
+						// that I don't need to call c.Close() here
+
 						// TODO: Fix this (small) memory leak
 						conns[i] = nil
 					}
