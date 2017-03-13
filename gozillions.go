@@ -51,14 +51,16 @@ func handle(cm *ConnectionManager, conn net.Conn) {
 		return
 	}
 
-	buf = make([]byte, int(buf[0]))
+	header := buf[0]
+
+	buf = make([]byte, int(header))
 	n, err := conn.Read(buf)
 	if err != nil {
 		log.Printf("Error reading message bytes: %s\n", err)
 		return
 	}
 
-	cm.Broadcast <- buf[:n]
+	cm.Broadcast <- append([]byte{header}, buf[:n]...)
 }
 
 type ConnectionManager struct {
