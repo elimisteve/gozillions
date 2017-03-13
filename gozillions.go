@@ -11,6 +11,8 @@ import (
 	"sync"
 )
 
+var Debug = (os.Getenv("DEBUG") != "")
+
 func main() {
 	listenAddr := parseAddr()
 	fmt.Printf("listening on %s\n", listenAddr)
@@ -26,7 +28,7 @@ func main() {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			log.Printf("Error accepting connection: %s\n", err)
+			logf("Error accepting connection: %s\n", err)
 			continue
 		}
 		go handle(cm, conn)
@@ -47,7 +49,7 @@ func handle(cm *ConnectionManager, conn net.Conn) {
 	buf := make([]byte, 1)
 	_, err := conn.Read(buf)
 	if err != nil {
-		log.Printf("Error reading initial byte: %s\n", err)
+		logf("Error reading initial byte: %s\n", err)
 		return
 	}
 
@@ -56,7 +58,7 @@ func handle(cm *ConnectionManager, conn net.Conn) {
 	buf = make([]byte, int(header))
 	n, err := conn.Read(buf)
 	if err != nil {
-		log.Printf("Error reading message bytes: %s\n", err)
+		logf("Error reading message bytes: %s\n", err)
 		return
 	}
 
@@ -78,6 +80,7 @@ func (cm *ConnectionManager) loop() {
 			conns = append(conns, c)
 		case msg := <-cm.Broadcast:
 			wg.Add(len(conns))
+			logf("Iterating over %d conns\n", len(conns))
 			for i, c := range conns {
 				if c == nil {
 					wg.Done()
@@ -86,7 +89,7 @@ func (cm *ConnectionManager) loop() {
 				go func(conn net.Conn) {
 					_, err := conn.Write(msg)
 					if err != nil {
-						log.Printf("Error writing to conn: %s\n", err)
+						logf("Error writing to conn: %s\n", err)
 
 						// TODO: Consider doing more checks to ensure
 						// that I don't need to call c.Close() here
@@ -109,4 +112,10 @@ func NewConnectionManager() *ConnectionManager {
 	}
 	go cm.loop()
 	return cm
+}
+
+func logf(s string, args ...interface{}) {
+	if Debug {
+		log.Printf(s, args...)
+	}
 }
