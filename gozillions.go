@@ -46,23 +46,25 @@ func parseAddr() string {
 func handle(cm *ConnectionManager, conn net.Conn) {
 	cm.Add <- conn
 
-	buf := make([]byte, 1)
-	_, err := conn.Read(buf)
-	if err != nil {
-		logf("Error reading initial byte: %s\n", err)
-		return
+	for {
+		buf := make([]byte, 1)
+		_, err := conn.Read(buf)
+		if err != nil {
+			logf("Error reading initial byte: %s\n", err)
+			return
+		}
+
+		header := buf[0]
+
+		buf = make([]byte, int(header))
+		n, err := conn.Read(buf)
+		if err != nil {
+			logf("Error reading message bytes: %s\n", err)
+			return
+		}
+
+		cm.Broadcast <- append([]byte{header}, buf[:n]...)
 	}
-
-	header := buf[0]
-
-	buf = make([]byte, int(header))
-	n, err := conn.Read(buf)
-	if err != nil {
-		logf("Error reading message bytes: %s\n", err)
-		return
-	}
-
-	cm.Broadcast <- append([]byte{header}, buf[:n]...)
 }
 
 type ConnectionManager struct {
